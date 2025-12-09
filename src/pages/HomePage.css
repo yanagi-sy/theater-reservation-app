@@ -1,0 +1,20 @@
+.theater-button {
+    width: 260px;
+    height: 80px;
+    background-color: #4b1818;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease;
+  }
+  
+  /* ホバー時のふわっと演出 */
+  .theater-button:hover {
+    transform: translateY(-6px);
+    box-shadow: 0px 10px 22px rgba(0, 0, 0, 0.35);
+    background-color: #5c1c1c;
+  }
+  

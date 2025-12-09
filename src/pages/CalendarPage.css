@@ -1,0 +1,68 @@
+/* 全体 */
+.calendar-page {
+    text-align: center;
+    padding-top: 20px;
+  }
+  
+  .calendar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .calendar-title {
+    font-size: 28px;
+    color: #4a1f1f;
+    font-weight: bold;
+  }
+  
+  .month-btn {
+    background: #4a1f1f;
+    color: #fff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .month-btn:hover {
+    opacity: 0.8;
+  }
+  
+  .calendar-grid {
+    width: 80%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+  }
+  
+  .calendar-cell {
+    background: #ffffff;
+    border: 1px solid #e2d5c5;
+    border-radius: 8px;
+    height: 95px;
+    padding: 6px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .fade-cell {
+    opacity: 0.45;
+  }
+
+  .event-tag {
+  font-size: 10px;
+  background: #f8dada;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-top: 2px;
+  color: #333;  /* ← ★ 文字色を黒に変更 */
+}
+
+  
