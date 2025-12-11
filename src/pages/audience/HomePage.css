@@ -1,20 +1,106 @@
-.theater-button {
-    width: 260px;
-    height: 80px;
-    background-color: #4b1818;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.25s ease;
+/* ============================================
+   トップページ
+============================================ */
+.home-page {
+  padding: 40px 20px;
+  text-align: center;
+  min-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-title {
+  font-size: 36px;
+  margin-bottom: 60px;
+  color: #4b1818;
+  font-weight: 600;
+}
+
+/* ============================================
+   カードコンテナ
+============================================ */
+.home-card-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 40px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* ============================================
+   ホームカード
+============================================ */
+.home-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 400px;
+  min-height: 350px;
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
+  border: 2px solid #e0d6c7;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.home-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.25);
+  border-color: #bca98f;
+}
+
+.home-card-header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #4b1818;
+  width: 100%;
+}
+
+.home-card-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4a1f1f;
+  margin: 0;
+}
+
+.home-card-description {
+  font-size: 16px;
+  color: #7a6b5c;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================
+   レスポンシブ対応
+============================================ */
+@media (max-width: 768px) {
+  .home-card-container {
+    flex-direction: column;
+    gap: 30px;
   }
-  
-  /* ホバー時のふわっと演出 */
-  .theater-button:hover {
-    transform: translateY(-6px);
-    box-shadow: 0px 10px 22px rgba(0, 0, 0, 0.35);
-    background-color: #5c1c1c;
+
+  .home-card {
+    width: 100%;
+    max-width: 400px;
+    min-height: 300px;
+    padding: 30px;
   }
-  
+
+  .home-title {
+    font-size: 28px;
+    margin-bottom: 40px;
+  }
+
+  .home-card-title {
+    font-size: 24px;
+  }
+}

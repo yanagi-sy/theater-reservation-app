@@ -1,84 +1,176 @@
-// src/pages/troupe/TroupePerformanceCreatePage.jsx
+/**
+ * ============================================
+ * TroupePerformanceCreatePage.jsx - 公演作成ページ
+ * ============================================
+ * 
+ * 劇団が新しい公演を作成するためのフォームページです。
+ * 
+ * 主な機能：
+ * 1. 公演の基本情報入力（タイトル、画像、説明、会場、料金など）
+ * 2. ステージ情報の追加・編集・削除（複数の公演日時を設定可能）
+ * 3. キャスト情報の追加・編集・削除（複数のキャストを登録可能）
+ * 4. スタッフ情報の追加・編集・削除（複数のスタッフを登録可能）
+ * 5. 公演データの保存
+ */
+
 import { useState } from "react";
 import "./TroupePerformanceCreatePage.css";
 
+/**
+ * TroupePerformanceCreatePageコンポーネント
+ * 
+ * @returns {JSX.Element} 公演作成フォームページのUI
+ */
 function TroupePerformanceCreatePage() {
-  // ------------------------------
-  // 公演の基本情報
-  // ------------------------------
-  const [title, setTitle] = useState("");
-  const [mainImage, setMainImage] = useState("");
-  const [overview, setOverview] = useState("");
-  const [venue, setVenue] = useState("");
-  const [address, setAddress] = useState("");
-  const [prefecture, setPrefecture] = useState("");
-  const [region, setRegion] = useState("");
-  const [price, setPrice] = useState(0);
+  // ============================================
+  // 公演の基本情報（単一の値）
+  // ============================================
+  // useState: コンポーネントの状態を管理するReactフック
+  // [値, 値を更新する関数] = useState(初期値)
+  
+  const [title, setTitle] = useState("");           // 公演タイトル
+  const [mainImage, setMainImage] = useState("");   // メイン画像URL
+  const [overview, setOverview] = useState("");      // 公演説明
+  const [venue, setVenue] = useState("");           // 会場名
+  const [address, setAddress] = useState("");       // 住所
+  const [prefecture, setPrefecture] = useState(""); // 都道府県
+  const [region, setRegion] = useState("");         // 地域（例：関東）
+  const [price, setPrice] = useState(0);            // 料金（0なら無料）
 
-  // ------------------------------
-  // ステージ情報（複数）
-  // ------------------------------
+  // ============================================
+  // ステージ情報（配列：複数の公演日時を管理）
+  // ============================================
+  // 1つの公演に複数のステージ（公演日時）を設定できます
+  // 例：同じ公演を3日間開催する場合、3つのステージを追加
+  
   const [stages, setStages] = useState([
-    { date: "", start: "", end: "", seatLimit: 0 }
+    { date: "", start: "", end: "", seatLimit: 0 }  // 初期値：1つのステージ
   ]);
 
+  /**
+   * ステージを追加する関数
+   * 
+   * スプレッド演算子（...）を使用して、既存の配列に新しい要素を追加
+   */
   const addStage = () => {
     setStages([...stages, { date: "", start: "", end: "", seatLimit: 0 }]);
   };
 
+  /**
+   * ステージ情報を更新する関数
+   * 
+   * @param {number} index - 更新するステージのインデックス
+   * @param {string} key - 更新するフィールド名（date, start, end, seatLimit）
+   * @param {string|number} value - 新しい値
+   */
   const updateStage = (index, key, value) => {
-    const updated = [...stages];
-    updated[index][key] = value;
-    setStages(updated);
+    const updated = [...stages];  // 配列のコピーを作成（直接変更を避ける）
+    updated[index][key] = value;  // 指定されたインデックスのフィールドを更新
+    setStages(updated);           // 更新された配列でstateを更新
   };
 
+  /**
+   * ステージを削除する関数
+   * 
+   * @param {number} index - 削除するステージのインデックス
+   * 
+   * 注意：最後の1つは削除できない（最低1つのステージが必要）
+   */
   const removeStage = (index) => {
-    if (stages.length === 1) return;
-    setStages(stages.filter((_, i) => i !== index));
+    if (stages.length === 1) return;  // 最後の1つは削除不可
+    setStages(stages.filter((_, i) => i !== index));  // 指定されたインデックスの要素を除外
   };
 
-  // ------------------------------
-  // キャスト（複数）
-  // ------------------------------
-  const [cast, setCast] = useState([{ name: "", role: "" }]);
+  // ============================================
+  // キャスト情報（配列：複数のキャストを管理）
+  // ============================================
+  // 1つの公演に複数のキャスト（出演者）を登録できます
+  
+  const [cast, setCast] = useState([{ name: "", role: "" }]);  // 初期値：1人のキャスト
 
+  /**
+   * キャストを追加する関数
+   */
   const addCast = () => setCast([...cast, { name: "", role: "" }]);
 
+  /**
+   * キャスト情報を更新する関数
+   * 
+   * @param {number} index - 更新するキャストのインデックス
+   * @param {string} key - 更新するフィールド名（name, role）
+   * @param {string} value - 新しい値
+   */
   const updateCast = (index, key, value) => {
     const updated = [...cast];
     updated[index][key] = value;
     setCast(updated);
   };
 
+  /**
+   * キャストを削除する関数
+   * 
+   * @param {number} index - 削除するキャストのインデックス
+   */
   const removeCast = (index) => {
-    if (cast.length === 1) return;
+    if (cast.length === 1) return;  // 最後の1人は削除不可
     setCast(cast.filter((_, i) => i !== index));
   };
 
-  // ------------------------------
-  // スタッフ（複数）
-  // ------------------------------
-  const [staff, setStaff] = useState([{ role: "", name: "" }]);
+  // ============================================
+  // スタッフ情報（配列：複数のスタッフを管理）
+  // ============================================
+  // 1つの公演に複数のスタッフ（制作スタッフなど）を登録できます
+  
+  const [staff, setStaff] = useState([{ role: "", name: "" }]);  // 初期値：1人のスタッフ
 
+  /**
+   * スタッフを追加する関数
+   */
   const addStaff = () => setStaff([...staff, { role: "", name: "" }]);
 
+  /**
+   * スタッフ情報を更新する関数
+   * 
+   * @param {number} index - 更新するスタッフのインデックス
+   * @param {string} key - 更新するフィールド名（role, name）
+   * @param {string} value - 新しい値
+   */
   const updateStaff = (index, key, value) => {
     const updated = [...staff];
     updated[index][key] = value;
     setStaff(updated);
   };
 
+  /**
+   * スタッフを削除する関数
+   * 
+   * @param {number} index - 削除するスタッフのインデックス
+   */
   const removeStaff = (index) => {
-    if (staff.length === 1) return;
+    if (staff.length === 1) return;  // 最後の1人は削除不可
     setStaff(staff.filter((_, i) => i !== index));
   };
 
-  // ------------------------------
-  // 保存処理
-  // ------------------------------
+  // ============================================
+  // フォーム送信処理
+  // ============================================
+  
+  /**
+   * フォーム送信時の処理
+   * 
+   * @param {Event} e - フォーム送信イベント
+   * 
+   * 現在の実装：
+   * - 入力されたデータをコンソールに出力
+   * - アラートで通知
+   * 
+   * TODO: 将来的にはFirebaseに保存する処理を追加
+   */
   const handleSubmit = (e) => {
+    // フォームのデフォルト動作（ページリロード）を防止
     e.preventDefault();
 
+    // すべての入力データを1つのオブジェクトにまとめる
     const data = {
       title,
       mainImage,
@@ -87,13 +179,16 @@ function TroupePerformanceCreatePage() {
       address,
       prefecture,
       region,
-      price: Number(price),
+      price: Number(price),  // 文字列を数値に変換
       stages,
       cast,
       staff,
     };
 
+    // デバッグ用：コンソールにデータを出力
     console.log("保存データ：", data);
+    
+    // ユーザーに通知（実際のアプリでは、Firebaseへの保存処理を実行）
     alert("コンソールに保存データを出力しました！");
   };
 

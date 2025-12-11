@@ -112,30 +112,74 @@ export default function CalendarPage() {
         <button className="month-btn" onClick={nextMonth}>▶</button>
       </div>
 
-      {/* ▼ カレンダー表示 */}
+      {/* カレンダー表示 */}
       <div className="calendar-grid">
         {calendar.map((cell, index) => {
           const { day, offset } = cell;
 
-          // YYYY-MM-DD 形式
-          const dateString = `${year}-${String(month).padStart(2, "0")}-${String(
+          // 前月・翌月の年月を計算
+          let displayYear = year;
+          let displayMonth = month;
+          
+          if (offset === -1) {
+            // 前月
+            if (month === 1) {
+              displayYear = year - 1;
+              displayMonth = 12;
+            } else {
+              displayMonth = month - 1;
+            }
+          } else if (offset === 1) {
+            // 翌月
+            if (month === 12) {
+              displayYear = year + 1;
+              displayMonth = 1;
+            } else {
+              displayMonth = month + 1;
+            }
+          }
+
+          // YYYY-MM-DD 形式（実際の年月を使用）
+          const dateString = `${displayYear}-${String(displayMonth).padStart(2, "0")}-${String(
             day
           ).padStart(2, "0")}`;
 
-          // ▼ 当月のイベントだけ抽出（前後月は無視）
-          const events =
-            offset === 0
-              ? mockEvents.filter((e) => e.date === dateString)
-              : [];
+          /**
+           * イベント抽出ロジック
+           * 
+           * 変更前：当月のイベントのみ表示
+           * 変更後：前月・当月・翌月のイベントも表示
+           * 
+           * 判定方法：
+           * - 公演の最終日（endDate）が設定されている場合：開始日から最終日までの範囲で判定
+           * - endDateが設定されていない場合：公演日（date）が該当日と一致する場合のみ表示
+           */
+          const events = mockEvents.filter((e) => {
+            const eventDate = new Date(e.date);
+            const cellDate = new Date(dateString);
+            
+            // 日付を00:00:00にリセットして比較
+            eventDate.setHours(0, 0, 0, 0);
+            cellDate.setHours(0, 0, 0, 0);
+            
+            // endDateが設定されている場合：開始日から最終日までの範囲で判定
+            if (e.endDate) {
+              const endDate = new Date(e.endDate);
+              endDate.setHours(0, 0, 0, 0);
+              return cellDate >= eventDate && cellDate <= endDate;
+            }
+            
+            // endDateが設定されていない場合：公演日が該当日と一致する場合のみ
+            return eventDate.getTime() === cellDate.getTime();
+          });
 
           return (
             <div
               key={index}
               className={`calendar-cell ${offset !== 0 ? "fade-cell" : ""}`}
               onClick={() => {
-                if (offset !== 0) return; // 前月/翌月はクリック無効
-
-                // ▼ ステージ一覧ページへ遷移
+                // 前月/翌月もクリック可能に変更（イベントが表示されるため）
+                // ステージ一覧ページへ遷移
                 navigate(`/stage-list?date=${dateString}`);
               }}
             >
