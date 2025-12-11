@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Firebase設定ファイル（APIキー保護のため）
+src/firebase.js
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
