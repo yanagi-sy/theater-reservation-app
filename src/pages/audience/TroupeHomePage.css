@@ -1,0 +1,255 @@
+/* ============================================
+   劇団のHPページ（観客向け）
+============================================ */
+.troupe-home-page {
+  color: #3a2c1a;
+}
+
+/* ============================================
+   バナーエリア
+============================================ */
+.troupe-banner {
+  background: linear-gradient(135deg, #4b1818 0%, #6b2a2a 100%);
+  height: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-placeholder {
+  text-align: center;
+}
+
+/* ============================================
+   プロフィールコンテンツ
+============================================ */
+.troupe-content {
+  padding: 0 20px 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.troupe-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e0d6c7;
+}
+
+.troupe-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #f3e9d7;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.troupe-info {
+  flex: 1;
+}
+
+.troupe-name {
+  font-size: 32px;
+  font-weight: 700;
+  color: #4a1f1f;
+  margin-bottom: 12px;
+}
+
+.troupe-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #3a2c1a;
+  margin-top: 12px;
+}
+
+/* ============================================
+   SNSセクション
+============================================ */
+.troupe-sns-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.troupe-sns-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a1f1f;
+  margin-bottom: 16px;
+}
+
+.troupe-sns-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.troupe-sns-list li {
+  margin: 0;
+}
+
+.troupe-sns-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #4b1818;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.troupe-sns-link:hover {
+  background-color: #5c1c1c;
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   公演一覧セクション
+============================================ */
+.troupe-performances-section {
+  margin-top: 40px;
+}
+
+.troupe-performances-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4a1f1f;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e0d6c7;
+}
+
+.no-performances {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #7a6b5c;
+  font-size: 16px;
+}
+
+.troupe-performance-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.troupe-performance-card {
+  display: block;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #e0d6c7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.troupe-performance-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #bca98f;
+}
+
+.performance-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.performance-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3a2c1a;
+  margin: 0;
+  flex: 1;
+}
+
+.performance-price-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.badge-free {
+  background-color: #2ecc71;
+}
+
+.badge-paid {
+  background-color: #6C3FA5;
+}
+
+.performance-card-info {
+  font-size: 14px;
+  color: #7a6b5c;
+  margin: 6px 0;
+}
+
+/* ============================================
+   レスポンシブ対応
+============================================ */
+@media (max-width: 640px) {
+  .troupe-content {
+    padding: 0 16px 20px;
+  }
+
+  .troupe-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .troupe-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .troupe-name {
+    font-size: 24px;
+  }
+
+  .troupe-sns-list {
+    flex-direction: column;
+  }
+
+  .troupe-sns-link {
+    width: 100%;
+    text-align: center;
+  }
+
+  .troupe-performance-list {
+    grid-template-columns: 1fr;
+  }
+}
+

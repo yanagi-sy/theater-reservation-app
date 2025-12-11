@@ -26,7 +26,7 @@ export default function HomePage() {
           <button className="theater-button">演劇を観る</button>
         </Link>
 
-        <Link to="/login">
+        <Link to="/troupe/login">
           <button className="theater-button">演劇を作る（劇団の方）</button>
         </Link>
       </div>

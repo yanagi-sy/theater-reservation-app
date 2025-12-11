@@ -1,0 +1,114 @@
+/* ============================================
+   ReservePage.css（予約ページ専用のスタイル）
+   ・文字色を濃いブラウンに固定して読みやすく
+   ・クラシカルなアイボリー背景とマッチさせる
+============================================ */
+
+/* ページ全体 */
+.reserve-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+    /* ここで文字色を白 → 濃いブラウンに上書き */
+    color: #3c2f2f;
+  }
+  
+  /* 見出し */
+  .reserve-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #8b0000;
+    padding-bottom: 8px;
+  }
+  
+  /* 公演情報カード */
+  .reserve-event-card {
+    margin-top: 12px;
+    padding: 16px 18px;
+    background-color: #f8f3e8; /* アイボリー寄りの背景 */
+    border: 1px solid #d2b48c;
+    border-radius: 10px;
+  }
+  
+  .reserve-event-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .reserve-event-text {
+    margin: 4px 0;
+  }
+  
+  /* 入力フォーム全体 */
+  .reserve-form {
+    margin-top: 28px;
+  }
+  
+  /* 各入力フィールドのブロック */
+  .reserve-field {
+    margin-bottom: 16px;
+  }
+  
+  /* ラベル */
+  .reserve-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  
+  /* テキスト入力・数字入力 */
+  .reserve-input {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid #c2b280;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #3c2f2f; /* 入力文字も濃いブラウン */
+    box-sizing: border-box;
+  }
+  
+  /* テキストエリア */
+  .reserve-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid #c2b280;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #3c2f2f;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  
+  /* 予約ボタン */
+  .reserve-button {
+    width: 100%;
+    padding: 14px 20px;
+    background-color: #8b0000; /* ダークレッド */
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
+  }
+  
+  /* ホバー時のちょっとした演出 */
+  .reserve-button:hover {
+    opacity: 0.92;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    transform: translateY(-1px);
+  }
+  
+  .reserve-button:active {
+    opacity: 0.85;
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  

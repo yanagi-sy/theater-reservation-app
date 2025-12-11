@@ -1,0 +1,118 @@
+/* ============================================
+   劇団プロフィール編集ページ
+============================================ */
+.troupe-profile-edit-page {
+  padding: 30px;
+  color: #3a2c1a;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.troupe-profile-edit-page h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4a1f1f;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.troupe-profile-edit-page h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #4a1f1f;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+/* ============================================
+   フォーム
+============================================ */
+.profile-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a1f1f;
+  margin-bottom: 8px;
+}
+
+.profile-form input[type="text"],
+.profile-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid #cec3b5;
+  border-radius: 8px;
+  background: #fff;
+  color: #3a2c1a;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.profile-form input:focus,
+.profile-form textarea:focus {
+  outline: none;
+  border-color: #a68b6a;
+  box-shadow: 0 0 4px rgba(166, 139, 106, 0.5);
+}
+
+.profile-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.profile-form input::placeholder,
+.profile-form textarea::placeholder {
+  color: #9a8a7a;
+}
+
+/* ============================================
+   保存ボタン
+============================================ */
+.profile-form button[type="submit"] {
+  width: 100%;
+  padding: 16px;
+  background-color: #4b1818;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  margin-top: 30px;
+}
+
+.profile-form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
+  background-color: #5c1c1c;
+}
+
+/* ============================================
+   レスポンシブ対応
+============================================ */
+@media (max-width: 640px) {
+  .troupe-profile-edit-page {
+    padding: 20px;
+  }
+
+  .profile-form {
+    padding: 20px;
+  }
+}
+

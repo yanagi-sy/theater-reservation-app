@@ -1,0 +1,79 @@
+/* ============================================
+   劇団レイアウトのナビゲーション
+============================================ */
+.troupe-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #4a0e0e;
+  font-weight: bold;
+}
+
+.troupe-nav-link {
+  color: #4a1f1f;
+  text-decoration: none;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.troupe-nav-link:hover {
+  color: #5c1c1c;
+  background-color: rgba(74, 31, 31, 0.1);
+  border-radius: 4px;
+}
+
+.troupe-nav-button {
+  background: none;
+  border: none;
+  color: #4a1f1f;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.troupe-nav-button:hover {
+  color: #5c1c1c;
+  background-color: rgba(74, 31, 31, 0.1);
+  border-radius: 4px;
+}
+
+.nav-text {
+  color: #4a1f1f;
+  font-size: 16px;
+}
+
+.nav-divider {
+  color: #4a0e0e;
+  font-size: 18px;
+  font-weight: normal;
+  padding: 0 4px;
+  user-select: none;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .troupe-nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-divider {
+    display: none;
+  }
+
+  .troupe-nav-link,
+  .troupe-nav-button {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+

@@ -1,0 +1,186 @@
+/* ============================================
+   公演作成ページ
+============================================ */
+.troupe-performance-create-page {
+  padding: 30px;
+  color: #3a2c1a;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.troupe-performance-create-page h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4a1f1f;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.troupe-performance-create-page h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a1f1f;
+  margin-top: 30px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e0d6c7;
+}
+
+/* ============================================
+   フォーム
+============================================ */
+.performance-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.performance-form input[type="text"],
+.performance-form input[type="number"],
+.performance-form input[type="date"],
+.performance-form input[type="time"],
+.performance-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid #cec3b5;
+  border-radius: 8px;
+  background: #fff;
+  color: #3a2c1a;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.performance-form input:focus,
+.performance-form textarea:focus {
+  outline: none;
+  border-color: #a68b6a;
+  box-shadow: 0 0 4px rgba(166, 139, 106, 0.5);
+}
+
+.performance-form textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.performance-form input::placeholder,
+.performance-form textarea::placeholder {
+  color: #9a8a7a;
+}
+
+/* ============================================
+   ステージ・キャスト・スタッフ項目
+============================================ */
+.stage-item,
+.cast-item,
+.staff-item {
+  background: #f8f5f0;
+  border: 1px solid #e0d6c7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.stage-item input,
+.cast-item input,
+.staff-item input {
+  flex: 1;
+  min-width: 150px;
+  margin-bottom: 0;
+}
+
+.remove-btn {
+  padding: 8px 16px;
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+  background-color: #a93226;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   追加ボタン
+============================================ */
+.add-btn {
+  padding: 10px 20px;
+  background-color: #4b1818;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.add-btn:hover {
+  background-color: #5c1c1c;
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   保存ボタン
+============================================ */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background-color: #4b1818;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  margin-top: 30px;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
+  background-color: #5c1c1c;
+}
+
+/* ============================================
+   レスポンシブ対応
+============================================ */
+@media (max-width: 640px) {
+  .troupe-performance-create-page {
+    padding: 20px;
+  }
+
+  .performance-form {
+    padding: 20px;
+  }
+
+  .stage-item,
+  .cast-item,
+  .staff-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stage-item input,
+  .cast-item input,
+  .staff-item input {
+    width: 100%;
+  }
+}
+

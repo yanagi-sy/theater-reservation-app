@@ -5,23 +5,23 @@ export default function Layout() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 3fr 3fr 3fr 1fr",
+        gridTemplateColumns: "1fr 3fr 3fr 3fr 1fr", // 両サイド赤、中央3カラムアイボリー
         minHeight: "100vh",
-        backgroundColor: "#4a0e0e",
       }}
     >
       {/* 左の赤帯 */}
       <div style={{ backgroundColor: "#4a0e0e" }}></div>
 
-      {/* 中央（アイボリー）3列 */}
+      {/* 中央エリア（画面のメイン部分） */}
       <div
         style={{
-          gridColumn: "2 / 5",
-          backgroundColor: "#f7f2e8",
-          padding: "40px",
+          gridColumn: "2 / span 3",
+          backgroundColor: "#f3e9d7",
+          padding: "20px",
         }}
       >
-        <Outlet /> {/* ← ここに各ページが入る！ */}
+        {/* ここがページを切り替える場所！ */}
+        <Outlet />
       </div>
 
       {/* 右の赤帯 */}
@@ -29,5 +29,3 @@ export default function Layout() {
     </div>
   );
 }
-
-  

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CalendarPage.css";
 
-import { mockEvents } from "../mock/MockEvents";
+import { mockEvents } from "../../mock/MockEvents";
 
 
 // ▼ 日本の祝日取得

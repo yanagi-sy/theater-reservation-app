@@ -1,0 +1,66 @@
+/* ============================================
+   予約完了ページのデザイン
+============================================ */
+
+.reserve-complete-page {
+  background-color: #f0fff4; /* 落ち着いた成功色のグリーン */
+  padding: 40px;
+  border-radius: 12px;
+  max-width: 600px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.check-icon {
+  font-size: 60px;
+  color: #2ecc71; /* 成功の緑 */
+  margin-bottom: 20px;
+}
+
+.complete-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2d2d2d;
+}
+
+.complete-message {
+  font-size: 18px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.complete-summary-box {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: left;
+  margin-bottom: 30px;
+  border: 1px solid #c8e6c9;
+}
+
+.complete-summary-box p {
+  font-size: 16px;
+  margin: 6px 0;
+  color: #333;
+}
+
+/* ▼ ボタン */
+.complete-home-btn,
+.complete-calendar-btn {
+  display: block;
+  margin: 12px auto;
+  padding: 12px 20px;
+  background-color: #4a0e0e; /* あなたのアプリのクラシカル赤 */
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 18px;
+  width: 60%;
+  transition: 0.3s;
+}
+
+.complete-home-btn:hover,
+.complete-calendar-btn:hover {
+  background-color: #7a1a1a;
+}

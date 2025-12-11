@@ -9,7 +9,7 @@ import { useLocation, Link } from "react-router-dom";
 import "./StageListPage.css";
 
 // Mockイベントデータ
-import { mockEvents } from "../mock/MockEvents";
+import { mockEvents } from "../../mock/MockEvents";
 
 export default function StageListPage() {
   const location = useLocation();
@@ -205,10 +205,10 @@ export default function StageListPage() {
 
         {displayList.map((item) => (
           <Link
-            key={item.id}
-            to={`/stage-detail/${item.id}`}
-            className="stage-card"
-          >
+          key={item.id}
+          to={`/stage/${item.id}`}  
+          className="stage-card"
+        >        
             {/* タイトル + バッジ */}
             <div className="stage-card-header">
               <h2 className="stage-title">{item.title}</h2>
