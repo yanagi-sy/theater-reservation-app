@@ -18,7 +18,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { db } from "../../firebase";
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import "./TroupeProfileEditPage.css";
 
 /**
@@ -37,6 +37,7 @@ function TroupeProfileEditPage() {
   const [twitterUrl, setTwitterUrl] = useState("");        // X/Twitter URL
   const [instagramUrl, setInstagramUrl] = useState("");   // Instagram URL
   const [youtubeUrl, setYoutubeUrl] = useState("");        // YouTube URL
+  const [contactInfo, setContactInfo] = useState("");     // お問い合わせ用の連絡先
 
   // UI状態管理
   const [loading, setLoading] = useState(true);            // データ読み込み中かどうか
@@ -47,7 +48,6 @@ function TroupeProfileEditPage() {
 
   /**
    * Firestoreから劇団プロフィール情報を読み込む
-   * 新規登録直後の場合、複数回再試行を行う
    */
   useEffect(() => {
     if (!user || !db) {
@@ -55,43 +55,30 @@ function TroupeProfileEditPage() {
       return;
     }
 
-    let retryCount = 0;
-    const maxRetries = 2; // 最大2回再試行（5回から削減）
-    const retryDelay = 500; // 0.5秒ごとに再試行（1秒から短縮）
-
-    const loadTroupeProfile = async (isRetry = false) => {
+    const loadTroupeProfile = async () => {
       try {
         const startTime = performance.now(); // パフォーマンス測定開始
         
-        // タイムアウトを設定（10秒）
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("タイムアウト: Firestoreへの接続がタイムアウトしました。")), 10000);
-        });
+        // Firestoreから劇団データを直接取得（ドキュメントID = uid）
+        // 注意: Promise.race によるタイムアウトは削除
+        // Firestore SDK は独自のタイムアウトメカニズムを持っており、
+        // クライアント側で強制的にタイムアウトを設定すると、実際のエラーを隠してしまいます
+        const troupeDocRef = doc(db, "troupes", user.uid);
+        const troupeDocSnap = await getDoc(troupeDocRef);
         
-        // "troupes"コレクションから、現在のユーザーのUIDに一致するドキュメントを検索
-        const q = query(collection(db, "troupes"), where("uid", "==", user.uid));
-        
-        // タイムアウトとクエリの競合
-        const querySnapshot = await Promise.race([
-          getDocs(q),
-          timeoutPromise
-        ]);
-
         const loadTime = performance.now() - startTime; // 読み込み時間を測定
-        console.log(`プロフィール読み込み${isRetry ? ` (再試行${retryCount}回目)` : ""}: UID =`, user.uid);
-        console.log(`プロフィール読み込み${isRetry ? ` (再試行${retryCount}回目)` : ""}: 検索結果数 =`, querySnapshot.size);
+        console.log("プロフィール読み込み: UID =", user.uid);
         console.log(`読み込み時間: ${loadTime.toFixed(2)}ms`);
 
-        if (!querySnapshot.empty) {
-          // ドキュメントが見つかった場合、最初のドキュメントを取得
-          const troupeDoc = querySnapshot.docs[0];
-          const troupeData = troupeDoc.data();
+        // ドキュメントの存在を確認
+        if (troupeDocSnap.exists()) {
+          const troupeData = troupeDocSnap.data();
           
           console.log("プロフィール読み込み: 取得したデータ =", troupeData);
           console.log("プロフィール読み込み: 劇団名 =", troupeData.troupeName);
           
           // ドキュメントIDを保存（更新時に使用）
-          setTroupeDocId(troupeDoc.id);
+          setTroupeDocId(troupeDocSnap.id);
 
           // フォームにデータを設定
           const loadedTroupeName = troupeData.troupeName || "";
@@ -102,6 +89,7 @@ function TroupeProfileEditPage() {
           setTwitterUrl(troupeData.twitterUrl || "");
           setInstagramUrl(troupeData.instagramUrl || "");
           setYoutubeUrl(troupeData.youtubeUrl || "");
+          setContactInfo(troupeData.contactInfo || "");
 
           console.log("劇団プロフィールを読み込みました:", troupeData);
           console.log("フォームに設定した劇団名:", loadedTroupeName);
@@ -114,60 +102,36 @@ function TroupeProfileEditPage() {
           setError("");
           setLoading(false);
         } else {
-          // データが見つからない場合、再試行（新規登録直後の可能性を考慮）
-          if (retryCount < maxRetries) {
-            retryCount++;
-            console.warn(`劇団プロフィールが見つかりませんでした。${retryDelay}ms後に再試行します... (${retryCount}/${maxRetries})`);
-            
-            setTimeout(() => {
-              loadTroupeProfile(true);
-            }, retryDelay);
-          } else {
-            // 最大再試行回数に達した場合
-            console.error("劇団プロフィールが見つかりませんでした。最大再試行回数に達しました。");
-            console.error("デバッグ情報:");
-            console.error("- UID:", user.uid);
-            console.error("- Firestore接続:", db ? "接続済み" : "未接続");
-            setError("劇団プロフィールが見つかりませんでした。新規登録を完了してください。");
-            setLoading(false);
-          }
+          // ドキュメントが存在しない場合
+          console.warn("劇団プロフィールが見つかりませんでした。ドキュメントが存在しません。");
+          console.warn("デバッグ情報:");
+          console.warn("- UID:", user.uid);
+          console.warn("- Firestore接続:", db ? "接続済み" : "未接続");
+          console.warn("- ドキュメントパス: troupes/" + user.uid);
+          
+          setError("劇団プロフィールが見つかりませんでした。新規登録を完了してください。");
+          setLoading(false);
         }
       } catch (error) {
         console.error("プロフィール読み込みエラー:", error);
         console.error("エラーコード:", error.code);
         console.error("エラーメッセージ:", error.message);
         
-        // エラーの種類に応じた処理
-        const isNetworkError = error.code === "unavailable" || 
-                                error.message?.includes("network") || 
-                                error.message?.includes("タイムアウト");
-        const isPermissionError = error.code === "permission-denied";
+        // エラーの種類に応じたメッセージを設定
+        let errorMessage = "プロフィール情報の読み込みに失敗しました。";
         
-        // ネットワークエラーの場合のみ再試行
-        if (retryCount < maxRetries && isNetworkError && !isPermissionError) {
-          retryCount++;
-          console.warn(`ネットワークエラーが発生しました。${retryDelay}ms後に再試行します... (${retryCount}/${maxRetries})`);
-          
-          setTimeout(() => {
-            loadTroupeProfile(true);
-          }, retryDelay);
+        if (error.code === "permission-denied") {
+          errorMessage = "Firestoreの読み取り権限がありません。セキュリティルールを確認してください。";
+        } else if (error.code === "unavailable" || error.message?.includes("network")) {
+          errorMessage = "ネットワークエラーが発生しました。インターネット接続を確認してください。";
+        } else if (error.code === "unauthenticated") {
+          errorMessage = "認証が必要です。再度ログインしてください。";
         } else {
-          // 権限エラーやタイムアウト、最大再試行回数に達した場合
-          let errorMessage = "プロフィール情報の読み込みに失敗しました。";
-          
-          if (error.message?.includes("タイムアウト")) {
-            errorMessage = "読み込みがタイムアウトしました。ネットワーク接続を確認してください。";
-          } else if (isPermissionError) {
-            errorMessage = "Firestoreの読み取り権限がありません。セキュリティルールを確認してください。";
-          } else if (error.code === "unauthenticated") {
-            errorMessage = "認証が必要です。再度ログインしてください。";
-          } else {
-            errorMessage = `エラーが発生しました: ${error.message || error.code || "不明なエラー"}`;
-          }
-          
-          setError(errorMessage);
-          setLoading(false);
+          errorMessage = `エラーが発生しました: ${error.message || error.code || "不明なエラー"}`;
         }
+        
+        setError(errorMessage);
+        setLoading(false);
       }
     };
 
@@ -191,6 +155,7 @@ function TroupeProfileEditPage() {
       return;
     }
 
+    // ドキュメントが存在しない場合は更新できない
     if (!troupeDocId) {
       setError("劇団プロフィールが見つかりませんでした。新規登録を完了してください。");
       setSaving(false);
@@ -203,7 +168,7 @@ function TroupeProfileEditPage() {
         throw new Error("劇団名を入力してください。");
       }
 
-      // Firestoreのドキュメントを更新
+      // 既存ドキュメントの更新（updateDoc のみを使用）
       const troupeRef = doc(db, "troupes", troupeDocId);
       await updateDoc(troupeRef, {
         troupeName: troupeName.trim(),
@@ -213,6 +178,7 @@ function TroupeProfileEditPage() {
         twitterUrl: twitterUrl.trim(),
         instagramUrl: instagramUrl.trim(),
         youtubeUrl: youtubeUrl.trim(),
+        contactInfo: contactInfo.trim(),
         updatedAt: serverTimestamp(),
         lastActivityAt: serverTimestamp(), // 最終活動日時を更新
       });
@@ -334,6 +300,16 @@ function TroupeProfileEditPage() {
           placeholder="YouTube"
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
+          disabled={saving}
+        />
+
+        {/* お問い合わせ用の連絡先入力フィールド */}
+        <h3>お問い合わせ用の連絡先</h3>
+        <input
+          type="text"
+          placeholder="メールアドレスまたは電話番号など"
+          value={contactInfo}
+          onChange={(e) => setContactInfo(e.target.value)}
           disabled={saving}
         />
 

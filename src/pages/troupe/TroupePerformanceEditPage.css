@@ -43,7 +43,54 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* ============================================
+   フォームフィールド
+============================================ */
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3a2c1a;
+  margin-bottom: 8px;
+}
+
+.required-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #c0392b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.optional-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #7f8c8d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.section-description {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
 .performance-edit-form input[type="text"],
+.performance-edit-form input[type="number"],
+.performance-edit-form input[type="date"],
+.performance-edit-form input[type="time"],
 .performance-edit-form textarea {
   width: 100%;
   padding: 12px 16px;
@@ -52,7 +99,7 @@
   border-radius: 8px;
   background: #fff;
   color: #3a2c1a;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
@@ -76,6 +123,76 @@
 }
 
 /* ============================================
+   ステージ・キャスト・スタッフ項目
+============================================ */
+.stage-item,
+.cast-item,
+.staff-item {
+  background: #f8f5f0;
+  border: 1px solid #e0d6c7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.stage-item .form-field,
+.cast-item .form-field,
+.staff-item .form-field {
+  flex: 1;
+  min-width: 150px;
+  margin-bottom: 0;
+}
+
+.stage-item input,
+.cast-item input,
+.staff-item input {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.remove-btn {
+  padding: 8px 16px;
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+  background-color: #a93226;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   追加ボタン
+============================================ */
+.add-btn {
+  padding: 10px 20px;
+  background-color: #4b1818;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.add-btn:hover {
+  background-color: #5c1c1c;
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
    更新ボタン
 ============================================ */
 .update-btn {
@@ -93,10 +210,44 @@
   margin-top: 30px;
 }
 
-.update-btn:hover {
+.update-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
   background-color: #5c1c1c;
+}
+
+.update-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   削除ボタン
+============================================ */
+.delete-btn {
+  width: 100%;
+  padding: 16px;
+  background-color: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  margin-top: 20px;
+}
+
+.delete-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
+  background-color: #a93226;
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ============================================
@@ -110,5 +261,17 @@
   .performance-edit-form {
     padding: 20px;
   }
-}
 
+  .stage-item,
+  .cast-item,
+  .staff-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stage-item input,
+  .cast-item input,
+  .staff-item input {
+    width: 100%;
+  }
+}

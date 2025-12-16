@@ -73,6 +73,18 @@
   color: #3a2c1a;
 }
 
+/* ============================================
+   アクションボタンエリア（編集・予約一覧ボタンを横並びに配置）
+============================================ */
+.performance-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ============================================
+   編集ボタン
+============================================ */
 .performance-edit-link {
   padding: 8px 16px;
   background-color: #4b1818;
@@ -85,6 +97,25 @@
 }
 
 .performance-edit-link:hover {
+  background-color: #5c1c1c;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   予約一覧ボタン（編集ボタンと同じスタイルを適用）
+============================================ */
+.performance-reservations-link {
+  padding: 8px 16px;
+  background-color: #4b1818;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.performance-reservations-link:hover {
   background-color: #5c1c1c;
   transform: translateY(-1px);
 }
@@ -103,7 +134,15 @@
     gap: 12px;
   }
 
-  .performance-edit-link {
+  /* モバイルではボタンを縦並びにする */
+  .performance-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .performance-edit-link,
+  .performance-reservations-link {
     width: 100%;
     text-align: center;
   }

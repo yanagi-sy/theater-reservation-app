@@ -32,6 +32,21 @@ export default function ReserveCompletePage() {
       <p className="complete-message">
         ご予約ありがとうございます。予約内容を確認してください。
       </p>
+      
+      {/* メール送信についての案内 */}
+      <div style={{
+        marginTop: "20px",
+        marginBottom: "20px",
+        padding: "16px",
+        backgroundColor: "#e3f2fd",
+        borderRadius: "8px",
+        border: "1px solid #90caf9"
+      }}>
+        <p style={{ margin: 0, lineHeight: "1.6", color: "#1565c0" }}>
+          入力したメールアドレス宛に予約内容をお送りします。<br />
+          キャンセルをご希望の場合は、メール内のキャンセルリンクからお手続きください。
+        </p>
+      </div>
 
       {event && (
         <div className="complete-summary-box">

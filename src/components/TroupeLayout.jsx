@@ -13,6 +13,7 @@
  */
 
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import "./TroupeLayout.css";
 
 /**
@@ -28,19 +29,27 @@ import "./TroupeLayout.css";
 export default function TroupeLayout() {
   // useNavigateフック：プログラム的にページ遷移を行うための関数を取得
   const navigate = useNavigate();
+  
+  // 認証状態を取得
+  const { signOut } = useAuth();
 
   /**
    * ログアウト処理
    * 
-   * 現在の実装では、トップページにリダイレクトするだけです。
-   * 将来的には、Firebaseの認証状態をクリアする処理を追加する必要があります。
+   * Firebase Authenticationからログアウトし、トップページにリダイレクトします。
    */
-  const handleLogout = () => {
-    // TODO: Firebaseの認証状態をクリアする処理を追加
-    // 例：await signOut(auth);
-    
-    // トップページ（/）にリダイレクト
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      // Firebase Authenticationからログアウト
+      await signOut();
+      
+      // トップページ（/）にリダイレクト
+      navigate("/");
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+      // エラーが発生してもトップページにリダイレクト（ユーザー体験を優先）
+      navigate("/");
+    }
   };
 
   return (

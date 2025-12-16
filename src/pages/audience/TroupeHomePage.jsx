@@ -85,11 +85,17 @@ export default function TroupeHomePage() {
       {/* プロフィールコンテンツ */}
       <div className="troupe-content">
         <div className="troupe-header">
-          <img
-            src={troupeData.iconUrl || "https://via.placeholder.com/120"}
-            alt={troupeData.name}
-            className="troupe-icon"
-          />
+          {troupeData.iconUrl ? (
+            <img
+              src={troupeData.iconUrl}
+              alt={troupeData.name}
+              className="troupe-icon"
+            />
+          ) : (
+            <div className="troupe-icon-placeholder">
+              {troupeData.name.charAt(0)}
+            </div>
+          )}
           <div className="troupe-info">
             <h1 className="troupe-name">{troupeData.name}</h1>
             <p className="troupe-description">{troupeData.description}</p>

@@ -1,15 +1,14 @@
 // ============================================
 // StageListPage.jsx（完全版）
 // 公演一覧ページ：検索・フィルター・並べ替え・地域対応
-// MockEvents.js と完全連携します
+// Firestore から公演データを読み込みます
 // ============================================
 
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { collection, getDocs, query, orderBy, doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 import "./StageListPage.css";
-
-// Mockイベントデータ
-import { mockEvents } from "../../mock/MockEvents";
 
 export default function StageListPage() {
   const location = useLocation();
@@ -25,36 +24,141 @@ export default function StageListPage() {
   const [filterPrefecture, setFilterPrefecture] = useState("all"); // 都道府県
   const [sortKey, setSortKey] = useState("time-asc");          // 並べ替え
   const [displayList, setDisplayList] = useState([]);
+  
+  // Firestore読み取り用の状態
+  const [performances, setPerformances] = useState([]);        // Firestoreから取得した生データ
+  const [troupeMap, setTroupeMap] = useState({});             // troupeId -> 劇団情報のマップ
+  const [loading, setLoading] = useState(true);                // 読み込み中
+  const [error, setError] = useState("");                      // エラーメッセージ
 
   // --------------------------------------------
-  // 都道府県一覧（MockEvents から自動生成）
+  // 都道府県一覧（Firestoreデータから自動生成）
   // --------------------------------------------
   const prefectureList = Array.from(
-    new Set(mockEvents.map((e) => e.prefecture))
+    new Set(performances.map((e) => e.prefecture).filter(Boolean))
   );
 
   // --------------------------------------------
-  // 初期ロード & 日付が変わったとき
+  // Firestoreから公演データと劇団情報を読み込む
   // --------------------------------------------
   useEffect(() => {
-    let list = [...mockEvents];
+    const loadPerformances = async () => {
+      if (!db) {
+        setError("Firestoreが初期化されていません。");
+        setLoading(false);
+        return;
+      }
 
-    if (selectedDate) {
-      list = list.filter((ev) => ev.date === selectedDate);
-    }
+      try {
+        setLoading(true);
+        setError("");
 
-    setDisplayList(list);
-  }, [selectedDate]);
+        // Firestoreの"performances"コレクションから全データを取得
+        const performancesRef = collection(db, "performances");
+        const q = query(performancesRef, orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        const performancesData = [];
+        const troupeIds = new Set(); // 重複を避けるためSetを使用
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          performancesData.push({
+            id: doc.id, // ドキュメントID
+            ...data,
+          });
+          
+          // 劇団IDを収集
+          if (data.troupeId) {
+            troupeIds.add(data.troupeId);
+          }
+        });
+
+        console.log("公演データを読み込みました:", performancesData.length, "件");
+
+        // 劇団情報をバッチで取得
+        const troupeDataMap = {};
+        const troupePromises = Array.from(troupeIds).map(async (troupeId) => {
+          try {
+            const troupeDocRef = doc(db, "troupes", troupeId);
+            const troupeDocSnap = await getDoc(troupeDocRef);
+            if (troupeDocSnap.exists()) {
+              troupeDataMap[troupeId] = troupeDocSnap.data();
+            } else {
+              troupeDataMap[troupeId] = { troupeName: "劇団名未設定" };
+            }
+          } catch (err) {
+            console.warn(`劇団情報の取得に失敗しました (troupeId: ${troupeId}):`, err);
+            troupeDataMap[troupeId] = { troupeName: "劇団名未設定" };
+          }
+        });
+
+        await Promise.all(troupePromises);
+        console.log("劇団情報を読み込みました:", Object.keys(troupeDataMap).length, "件");
+
+        setPerformances(performancesData);
+        setTroupeMap(troupeDataMap);
+      } catch (error) {
+        console.error("公演データ読み込みエラー:", error);
+        setError(`公演データの読み込みに失敗しました: ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPerformances();
+  }, []);
+
+  // --------------------------------------------
+  // Firestoreデータを表示用データ構造に変換する関数
+  // --------------------------------------------
+  const convertToDisplayFormat = (performance) => {
+    // stages配列から最初のステージ情報を取得
+    const firstStage = performance.stages && performance.stages.length > 0 
+      ? performance.stages[0] 
+      : null;
+
+    // 劇団情報を取得
+    const troupeInfo = troupeMap[performance.troupeId] || {};
+    const troupeName = troupeInfo.troupeName || "劇団名未設定";
+    const iconImage = troupeInfo.iconUrl || "";
+
+    return {
+      id: performance.id,
+      title: performance.title || "タイトル未設定",
+      troupe: troupeName,
+      troupeId: performance.troupeId,
+      iconImage: iconImage,
+      mainImage: performance.mainImage || "",
+      date: firstStage?.date || "",
+      time: firstStage?.start || "",
+      endDate: performance.stages && performance.stages.length > 0
+        ? performance.stages[performance.stages.length - 1]?.date
+        : null,
+      venue: performance.venue || "",
+      prefecture: performance.prefecture || "",
+      region: performance.region || "",
+      price: performance.price || 0,
+      overview: performance.overview || "",
+      cast: performance.cast || [],
+      staff: performance.staff || [],
+      stages: performance.stages || [],
+    };
+  };
 
   // --------------------------------------------
   // 絞り込み / 並べ替え処理
   // --------------------------------------------
   useEffect(() => {
-    let list = [...mockEvents];
+    // Firestoreデータを表示用データ構造に変換
+    let list = performances.map(convertToDisplayFormat);
 
-    // ▼ カレンダー遷移の日付
+    // ▼ カレンダー遷移の日付フィルター
     if (selectedDate) {
-      list = list.filter((ev) => ev.date === selectedDate);
+      list = list.filter((ev) => {
+        // stages配列内のいずれかのステージが選択日付と一致するか確認
+        return ev.stages.some((stage) => stage.date === selectedDate) || ev.date === selectedDate;
+      });
     }
 
     // ▼ 地方フィルター
@@ -67,14 +171,14 @@ export default function StageListPage() {
       list = list.filter((ev) => ev.prefecture === filterPrefecture);
     }
 
-    // ▼ 無料 / 有料
+    // ▼ 無料 / 有料フィルター
     if (filterPrice === "free") {
       list = list.filter((ev) => ev.price === 0);
     } else if (filterPrice === "paid") {
       list = list.filter((ev) => ev.price > 0);
     }
 
-    // ▼ キーワード検索（タイトル・劇団）
+    // ▼ キーワード検索（タイトル・劇団名）
     if (keyword.trim() !== "") {
       const key = keyword.toLowerCase();
       list = list.filter(
@@ -90,10 +194,10 @@ export default function StageListPage() {
     list = list.sort((a, b) => {
       switch (sortKey) {
         case "time-asc": // 開演が早い順
-          return a.time.localeCompare(b.time);
+          return (a.time || "").localeCompare(b.time || "");
 
         case "time-desc": // 開演が遅い順
-          return b.time.localeCompare(a.time);
+          return (b.time || "").localeCompare(a.time || "");
 
         case "price-asc": // 安い順（無料が最上位）
           return a.price - b.price;
@@ -101,8 +205,8 @@ export default function StageListPage() {
         case "price-desc": // 高い順
           return b.price - a.price;
 
-        case "newest": // 新着順（IDが大きい順）
-          return b.id - a.id;
+        case "newest": // 新着順（作成日時の降順、Firestoreで既にソート済み）
+          return 0; // Firestoreで既にソートされているため、そのまま維持
 
         default:
           return 0;
@@ -117,11 +221,34 @@ export default function StageListPage() {
     filterPrefecture,
     sortKey,
     selectedDate,
+    performances, // Firestoreデータが変更されたときに再フィルタリング
+    troupeMap,    // 劇団情報が変更されたときに再変換
   ]);
 
   // --------------------------------------------
   // JSX（UI部分）
   // --------------------------------------------
+  
+  // ローディング中の表示
+  if (loading) {
+    return (
+      <div className="stage-list-page">
+        <h1 className="page-title">公演一覧</h1>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  // エラー表示
+  if (error) {
+    return (
+      <div className="stage-list-page">
+        <h1 className="page-title">公演一覧</h1>
+        <p style={{ color: "#c62828", padding: "20px" }}>{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="stage-list-page">
       <h1 className="page-title">公演一覧</h1>
@@ -203,35 +330,56 @@ export default function StageListPage() {
           <p className="no-result">該当する公演がありません。</p>
         )}
 
-        {displayList.map((item) => (
-          <Link
-          key={item.id}
-          to={`/stage/${item.id}`}  
-          className="stage-card"
-        >        
-            {/* タイトル + バッジ */}
-            <div className="stage-card-header">
-              <h2 className="stage-title">{item.title}</h2>
-              <span
-                className={`price-badge ${
-                  item.price === 0 ? "badge-free" : "badge-paid"
-                }`}
-              >
-                {item.price === 0 ? "無料" : "有料"}
-              </span>
-            </div>
+        {displayList.map((item) => {
+          // 公演が終了しているかどうかを判定
+          // endDateが設定されている場合はendDateを使用、ない場合はdateを使用
+          const endDate = item.endDate || item.date;
+          const endDateTime = new Date(`${endDate}T${item.time || "23:59"}`);
+          const now = new Date();
+          const isEnded = endDateTime < now;
 
-            <p className="stage-info">劇団：{item.troupe}</p>
-            <p className="stage-info">
-              日時：{item.date} {item.time}
-            </p>
-            <p className="stage-info">
-              会場：{item.venue}（{item.prefecture}）
-            </p>
+          return (
+            <Link
+              key={item.id}
+              to={`/stage/${item.id}`}  
+              className={`stage-card ${isEnded ? "stage-card-ended" : ""}`}
+            >        
+              {/* タイトル + バッジ */}
+              <div className="stage-card-header">
+                <h2 className="stage-title">{item.title}</h2>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  {/* 終了バッジ */}
+                  {isEnded && (
+                    <span className="ended-badge">
+                      終了
+                    </span>
+                  )}
+                  {/* 料金バッジ */}
+                  <span
+                    className={`price-badge ${
+                      item.price === 0 ? "badge-free" : "badge-paid"
+                    }`}
+                  >
+                    {item.price === 0 ? "無料" : "有料"}
+                  </span>
+                </div>
+              </div>
 
-            <p className="stage-info">地域：{item.region}</p>
-          </Link>
-        ))}
+              <p className="stage-info">劇団：{item.troupe}</p>
+              <p className="stage-info">
+                日時：{item.date} {item.time}
+                {item.endDate && item.endDate !== item.date && (
+                  <span> 〜 {item.endDate}</span>
+                )}
+              </p>
+              <p className="stage-info">
+                会場：{item.venue}（{item.prefecture}）
+              </p>
+
+              <p className="stage-info">地域：{item.region}</p>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

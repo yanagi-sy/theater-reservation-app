@@ -78,12 +78,34 @@
   border: 1px solid #e0d6c7;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   transition: all 0.25s ease;
+  position: relative;
 }
 
 .stage-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   border-color: #bca98f;
+}
+
+/* 終了した公演のスタイル */
+.stage-card-ended {
+  opacity: 0.7;
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.stage-card-ended:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stage-card-ended .stage-title {
+  color: #666;
+}
+
+.stage-card-ended .stage-info {
+  color: #888;
 }
 
 /* ---------- カード上部（タイトル + バッジ） ---------- */
@@ -116,6 +138,16 @@
 /* 有料 → ゴージャス紫 */
 .badge-paid {
   background-color: #6C3FA5;
+}
+
+/* 終了バッジ */
+.ended-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  color: white;
+  background-color: #95a5a6;
 }
 
 /* ---------- 情報テキスト ---------- */

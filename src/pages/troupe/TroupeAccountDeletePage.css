@@ -1,0 +1,31 @@
+/**
+ * ============================================
+ * TroupeAccountDeletePage.css - アカウント削除ページのスタイル
+ * ============================================
+ */
+
+.troupe-account-delete-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.troupe-account-delete-page h1 {
+  color: #8b4513;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.delete-confirm-form {
+  text-align: center;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-confirm-form p {
+  margin-bottom: 15px;
+  color: #333;
+}
+

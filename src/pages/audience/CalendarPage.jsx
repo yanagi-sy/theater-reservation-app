@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { collection, query, getDocs, orderBy } from "firebase/firestore";
+import { db } from "../../firebase";
 import "./CalendarPage.css";
 
 import { mockEvents } from "../../mock/MockEvents";
@@ -55,6 +57,62 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(12);
 
   const [holidays, setHolidays] = useState(new Set());
+  const [performances, setPerformances] = useState([]); // Firestoreから取得した公演データ
+
+  // ============================================
+  // Firestoreから公演データを取得
+  // ============================================
+  // 
+  // 【問題点】修正前：
+  // - mockEventsのみを使用していたため、Firestoreのデータが表示されなかった
+  // - Firestoreからデータを取得する処理が実装されていなかった
+  // 
+  // 【修正内容】：
+  // - Firestoreのperformancesコレクションからデータを取得
+  // - 取得したデータをstateに保存
+  // - useEffectの依存配列を空配列にして、コンポーネントマウント時に1回だけ実行
+  // 
+  useEffect(() => {
+    const loadPerformances = async () => {
+      // Firestoreが初期化されているか確認
+      if (!db) {
+        console.warn("Firestoreが初期化されていません。");
+        return;
+      }
+
+      try {
+        // Firestoreの"performances"コレクションから全データを取得
+        // 【一時的な切り分け】フィルタ条件を外して、まず全部取得
+        const performancesRef = collection(db, "performances");
+        const q = query(performancesRef, orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        const performancesData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          performancesData.push({
+            id: doc.id, // ドキュメントID
+            ...data,
+          });
+        });
+
+        // 【重要】setStateでデータを保存
+        // なぜ必要か：stateに保存しないと、コンポーネントが再レンダリングされてもデータが反映されない
+        setPerformances(performancesData);
+        
+        // Firestore連携確認のためのconsole.log
+        console.log("=== カレンダーページ：Firestoreデータ取得 ===");
+        console.log("取得した公演数:", performancesData.length);
+        console.log("公演データ:", performancesData);
+        console.log("===========================================");
+      } catch (error) {
+        console.error("公演データ読み込みエラー:", error);
+        // エラーが発生しても画面は表示する（空の配列のまま）
+      }
+    };
+
+    loadPerformances();
+  }, []); // 依存配列を空にして、コンポーネントマウント時に1回だけ実行
 
   // ▼ 月変更時に祝日再取得
   useEffect(() => {
@@ -147,31 +205,60 @@ export default function CalendarPage() {
           /**
            * イベント抽出ロジック
            * 
-           * 変更前：当月のイベントのみ表示
-           * 変更後：前月・当月・翌月のイベントも表示
+           * 【修正内容】：
+           * - 修正前：mockEventsのみを使用（Firestoreのデータが表示されない）
+           * - 修正後：Firestoreから取得したperformancesデータを使用
            * 
            * 判定方法：
+           * - 公演のstages配列から各ステージのdateを取得
            * - 公演の最終日（endDate）が設定されている場合：開始日から最終日までの範囲で判定
-           * - endDateが設定されていない場合：公演日（date）が該当日と一致する場合のみ表示
+           * - endDateが設定されていない場合：各ステージのdateが該当日と一致する場合のみ表示
+           * 
+           * 【重要】null/undefinedチェック：
+           * - performancesが空配列の場合、filterは空配列を返す（エラーにならない）
+           * - stagesが存在しない場合、空配列として扱う
            */
-          const events = mockEvents.filter((e) => {
-            const eventDate = new Date(e.date);
+          const events = performances.filter((performance) => {
+            // 【重要】stages配列の存在チェック
+            // なぜ必要か：stagesが未定義やnullの場合、エラーを防ぐため
+            if (!performance.stages || !Array.isArray(performance.stages) || performance.stages.length === 0) {
+              return false; // stagesが存在しない場合は表示しない
+            }
+
+            // stages配列から最初と最後のステージを取得
+            const firstStage = performance.stages[0];
+            const lastStage = performance.stages[performance.stages.length - 1];
+            
+            // 最初のステージの日付を取得
+            const startDateString = firstStage?.date;
+            if (!startDateString) {
+              return false; // 日付が存在しない場合は表示しない
+            }
+
+            const startDate = new Date(startDateString);
             const cellDate = new Date(dateString);
             
             // 日付を00:00:00にリセットして比較
-            eventDate.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
             cellDate.setHours(0, 0, 0, 0);
             
-            // endDateが設定されている場合：開始日から最終日までの範囲で判定
-            if (e.endDate) {
-              const endDate = new Date(e.endDate);
+            // 最後のステージの日付を取得（複数日の場合）
+            const endDateString = lastStage?.date;
+            if (endDateString && endDateString !== startDateString) {
+              // 複数日にわたる公演の場合：開始日から最終日までの範囲で判定
+              const endDate = new Date(endDateString);
               endDate.setHours(0, 0, 0, 0);
-              return cellDate >= eventDate && cellDate <= endDate;
+              return cellDate >= startDate && cellDate <= endDate;
             }
             
-            // endDateが設定されていない場合：公演日が該当日と一致する場合のみ
-            return eventDate.getTime() === cellDate.getTime();
-          });
+            // 単一日の公演の場合：開始日が該当日と一致する場合のみ
+            return startDate.getTime() === cellDate.getTime();
+          }).map((performance) => ({
+            // 表示用のデータ形式に変換
+            id: performance.id,
+            title: performance.title || "タイトル未設定",
+            date: performance.stages?.[0]?.date || "",
+          }));
 
           return (
             <div
