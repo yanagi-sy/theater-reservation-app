@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { collection, query, getDocs, orderBy } from "firebase/firestore";
 import { db } from "../../firebase";
 import "./CalendarPage.css";
-
-import { mockEvents } from "../../mock/MockEvents";
 
 
 // ▼ 日本の祝日取得
@@ -22,29 +20,82 @@ async function fetchHolidays(year, month) {
   return new Set(keys); // "YYYY-MM-DD" のまま保持
 }
 
-// ▼ 42マスのカレンダー生成（前月/当月/翌月）
+/**
+ * YYYY-MM-DD 形式へ変換するユーティリティ
+ *
+ * なぜ必要か：
+ * - 祝日API（holidays-jp）は "YYYY-MM-DD" をキーにしているため
+ * - クリック遷移（/stages?date=...）でも同じ形式を使うため
+ */
+const toDateString = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+/**
+ * カレンダー表示用の42セル配列を生成する（必ず 日曜始まり / 7列×6行）
+ *
+ * 【要件】
+ * ① 表示月の1日の曜日を取得
+ * ② その曜日分だけ前月の日付を配列に追加
+ * ③ 表示月の日付をすべて追加
+ * ④ 配列の長さが42になるまで次月の日付を追加
+ *
+ * なぜこの生成が必要か：
+ * - 月によってセル数が変動すると、土日列の位置がズレやすくなるため
+ * - 常に 42セル（6行）に固定すると、曜日列の位置が「毎月」安定するため
+ * - 表示の安定により、土日/祝日の色判定がズレなくなるため
+ */
 const generateCalendar = (year, month) => {
-  const firstDay = new Date(year, month - 1, 1);
-  const startWeekday = firstDay.getDay(); // 0(日)〜6(土)
-  const daysInThisMonth = new Date(year, month, 0).getDate();
-  const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
+  // month は 1〜12 で管理しているので、Date用に 0〜11 に変換する
+  const monthIndex = month - 1;
+
+  // ① 表示月の1日の曜日（0:日〜6:土）
+  const firstDayOfMonth = new Date(year, monthIndex, 1);
+  const firstWeekday = firstDayOfMonth.getDay();
+
+  // 表示月の日数（例：1月=31, 2月=28/29）
+  const daysInThisMonth = new Date(year, monthIndex + 1, 0).getDate();
 
   const cells = [];
 
-  // ▼ 前月の日付マス
-  for (let i = startWeekday - 1; i >= 0; i--) {
-    cells.push({ day: daysInPrevMonth - i, offset: -1 });
+  // ② その曜日分だけ前月の日付を先頭に補完
+  // なぜ 1 - i で作るか：
+  // - new Date(year, monthIndex, 0) は「前月末日」になるなど、Dateが月跨ぎを自動調整してくれるため
+  for (let i = firstWeekday; i > 0; i -= 1) {
+    const date = new Date(year, monthIndex, 1 - i);
+    cells.push({
+      date,
+      dateString: toDateString(date),
+      day: date.getDate(),
+      isOutsideMonth: true, // ⑥ 表示月以外（前月）
+    });
   }
 
-  // ▼ 当月の日付マス
-  for (let i = 1; i <= daysInThisMonth; i++) {
-    cells.push({ day: i, offset: 0 });
+  // ③ 表示月の日付をすべて追加
+  for (let day = 1; day <= daysInThisMonth; day += 1) {
+    const date = new Date(year, monthIndex, day);
+    cells.push({
+      date,
+      dateString: toDateString(date),
+      day,
+      isOutsideMonth: false,
+    });
   }
 
-  // ▼ 翌月の日付マス（42マスに調整）
+  // ④ 42セルに達するまで次月の日付を末尾に補完
+  let nextDay = 1;
   while (cells.length < 42) {
-    const nextDay = cells.length - (startWeekday + daysInThisMonth) + 1;
-    cells.push({ day: nextDay, offset: 1 });
+    const date = new Date(year, monthIndex, daysInThisMonth + nextDay);
+    cells.push({
+      date,
+      dateString: toDateString(date),
+      day: date.getDate(),
+      isOutsideMonth: true, // ⑥ 表示月以外（次月）
+    });
+    nextDay += 1;
   }
 
   return cells;
@@ -58,6 +109,14 @@ export default function CalendarPage() {
 
   const [holidays, setHolidays] = useState(new Set());
   const [performances, setPerformances] = useState([]); // Firestoreから取得した公演データ
+
+  // ▼ カレンダーページ表示中だけ、Layoutの左右paddingを無効化してフル幅にする（iPhone SE等の横はみ出し対策）
+  useEffect(() => {
+    document.body.classList.add("audience-calendar");
+    return () => {
+      document.body.classList.remove("audience-calendar");
+    };
+  }, []);
 
   // ============================================
   // Firestoreから公演データを取得
@@ -99,12 +158,6 @@ export default function CalendarPage() {
         // 【重要】setStateでデータを保存
         // なぜ必要か：stateに保存しないと、コンポーネントが再レンダリングされてもデータが反映されない
         setPerformances(performancesData);
-        
-        // Firestore連携確認のためのconsole.log
-        console.log("=== カレンダーページ：Firestoreデータ取得 ===");
-        console.log("取得した公演数:", performancesData.length);
-        console.log("公演データ:", performancesData);
-        console.log("===========================================");
       } catch (error) {
         console.error("公演データ読み込みエラー:", error);
         // エラーが発生しても画面は表示する（空の配列のまま）
@@ -119,26 +172,47 @@ export default function CalendarPage() {
     fetchHolidays(year, month).then(setHolidays);
   }, [year, month]);
 
+  // 横はみ出しの事実確認（PIIなし：幅のみ）
+  useEffect(() => {
+    // ※以前のデバッグ用ログ送信は削除（プロダクションコードに不要なため）
+  }, [year, month, performances.length]);
+
   // ▼ カレンダーマス生成
   const calendar = generateCalendar(year, month);
 
-  // ▼ 日付色処理
-  const getDayColor = (day, offset) => {
-    // 前後月
-    if (offset !== 0) return "#b8b8b8";
+  const getEventsForDate = (dateString) => {
+    if (!dateString) return [];
 
-    // 日付文字列（祝日チェック用）
-    const dateString = `${year}-${String(month).padStart(2, "0")}-${String(
-      day
-    ).padStart(2, "0")}`;
+    return performances
+      .filter((performance) => {
+        if (!performance.stages || !Array.isArray(performance.stages) || performance.stages.length === 0) {
+          return false;
+        }
 
-    if (holidays.has(dateString)) return "red";
+        const firstStage = performance.stages[0];
+        const lastStage = performance.stages[performance.stages.length - 1];
 
-    const w = new Date(year, month - 1, day).getDay();
-    if (w === 0) return "red"; // 日曜
-    if (w === 6) return "blue"; // 土曜
+        const startDateString = firstStage?.date;
+        if (!startDateString) return false;
 
-    return "#4a3a2a";
+        const startDate = new Date(startDateString);
+        const cellDate = new Date(dateString);
+        startDate.setHours(0, 0, 0, 0);
+        cellDate.setHours(0, 0, 0, 0);
+
+        const endDateString = lastStage?.date;
+        if (endDateString && endDateString !== startDateString) {
+          const endDate = new Date(endDateString);
+          endDate.setHours(0, 0, 0, 0);
+          return cellDate >= startDate && cellDate <= endDate;
+        }
+
+        return startDate.getTime() === cellDate.getTime();
+      })
+      .map((performance) => ({
+        id: performance.id,
+        title: performance.title || "タイトル未設定",
+      }));
   };
 
   // ▼ 前月へ
@@ -163,6 +237,13 @@ export default function CalendarPage() {
 
   return (
     <div className="calendar-page">
+      {/* トップへ戻る（履歴依存しない固定リンク） */}
+      <div className="audience-top-nav">
+        <Link to="/" className="audience-top-nav-link">
+          ← トップに戻る
+        </Link>
+      </div>
+
       {/* ▼ 年月ヘッダー */}
       <div className="calendar-header">
         <button className="month-btn" onClick={prevMonth}>◀</button>
@@ -173,115 +254,57 @@ export default function CalendarPage() {
       {/* カレンダー表示 */}
       <div className="calendar-grid">
         {calendar.map((cell, index) => {
-          const { day, offset } = cell;
+          const { day, dateString, isOutsideMonth } = cell;
 
-          // 前月・翌月の年月を計算
-          let displayYear = year;
-          let displayMonth = month;
-          
-          if (offset === -1) {
-            // 前月
-            if (month === 1) {
-              displayYear = year - 1;
-              displayMonth = 12;
-            } else {
-              displayMonth = month - 1;
-            }
-          } else if (offset === 1) {
-            // 翌月
-            if (month === 12) {
-              displayYear = year + 1;
-              displayMonth = 1;
-            } else {
-              displayMonth = month + 1;
-            }
-          }
+          // ④ 土日判定は Date.getDay() ではなく「表示セルのindex」で行う
+          // なぜ必要か：
+          // - 日付配列が前月/当月/次月を含むため、列の位置は index%7 が最も確実だから
+          const isSunday = index % 7 === 0;
+          const isSaturday = index % 7 === 6;
 
-          // YYYY-MM-DD 形式（実際の年月を使用）
-          const dateString = `${displayYear}-${String(displayMonth).padStart(2, "0")}-${String(
-            day
-          ).padStart(2, "0")}`;
+          // ⑤ 祝日判定は「実日付（dateString）」に対してのみ行う
+          // さらに、表示月以外（前月・次月）のセルには祝日色を付けない（視認性優先）
+          const isHoliday = !isOutsideMonth && holidays.has(dateString);
 
-          /**
-           * イベント抽出ロジック
-           * 
-           * 【修正内容】：
-           * - 修正前：mockEventsのみを使用（Firestoreのデータが表示されない）
-           * - 修正後：Firestoreから取得したperformancesデータを使用
-           * 
-           * 判定方法：
-           * - 公演のstages配列から各ステージのdateを取得
-           * - 公演の最終日（endDate）が設定されている場合：開始日から最終日までの範囲で判定
-           * - endDateが設定されていない場合：各ステージのdateが該当日と一致する場合のみ表示
-           * 
-           * 【重要】null/undefinedチェック：
-           * - performancesが空配列の場合、filterは空配列を返す（エラーにならない）
-           * - stagesが存在しない場合、空配列として扱う
-           */
-          const events = performances.filter((performance) => {
-            // 【重要】stages配列の存在チェック
-            // なぜ必要か：stagesが未定義やnullの場合、エラーを防ぐため
-            if (!performance.stages || !Array.isArray(performance.stages) || performance.stages.length === 0) {
-              return false; // stagesが存在しない場合は表示しない
-            }
+          // 日付色（表示セルの列位置で土日を判定する）
+          const dayColor = isOutsideMonth
+            ? "#b8b8b8"
+            : isHoliday || isSunday
+              ? "red"
+              : isSaturday
+                ? "blue"
+                : "#4a3a2a";
 
-            // stages配列から最初と最後のステージを取得
-            const firstStage = performance.stages[0];
-            const lastStage = performance.stages[performance.stages.length - 1];
-            
-            // 最初のステージの日付を取得
-            const startDateString = firstStage?.date;
-            if (!startDateString) {
-              return false; // 日付が存在しない場合は表示しない
-            }
-
-            const startDate = new Date(startDateString);
-            const cellDate = new Date(dateString);
-            
-            // 日付を00:00:00にリセットして比較
-            startDate.setHours(0, 0, 0, 0);
-            cellDate.setHours(0, 0, 0, 0);
-            
-            // 最後のステージの日付を取得（複数日の場合）
-            const endDateString = lastStage?.date;
-            if (endDateString && endDateString !== startDateString) {
-              // 複数日にわたる公演の場合：開始日から最終日までの範囲で判定
-              const endDate = new Date(endDateString);
-              endDate.setHours(0, 0, 0, 0);
-              return cellDate >= startDate && cellDate <= endDate;
-            }
-            
-            // 単一日の公演の場合：開始日が該当日と一致する場合のみ
-            return startDate.getTime() === cellDate.getTime();
-          }).map((performance) => ({
-            // 表示用のデータ形式に変換
-            id: performance.id,
-            title: performance.title || "タイトル未設定",
-            date: performance.stages?.[0]?.date || "",
-          }));
+          const events = getEventsForDate(dateString);
+          const firstEvent = events[0];
+          const restCount = Math.max(0, events.length - 1);
 
           return (
             <div
-              key={index}
-              className={`calendar-cell ${offset !== 0 ? "fade-cell" : ""}`}
+              key={dateString}
+              className={`calendar-cell ${isOutsideMonth ? "fade-cell" : ""}`}
               onClick={() => {
-                // 前月/翌月もクリック可能に変更（イベントが表示されるため）
-                // ステージ一覧ページへ遷移
-                navigate(`/stage-list?date=${dateString}`);
+                // 日付タップでそのまま公演一覧へ遷移（Bottom Sheetは使わない）
+                navigate(`/stages?date=${dateString}`);
               }}
             >
-              {/* ▼ 日付表示 */}
-              <span style={{ color: getDayColor(day, offset), fontWeight: 600 }}>
-                {day}
-              </span>
-
-              {/* ▼ イベント表示 */}
-              <div className="events">
-                {events.map((ev, i) => (
-                  <div key={i} className="event-tag">
-                    {ev.title}
+              {/* ▼ 日付 + イベント領域（CSS Grid支配 / 中身はoverflowで逃がす） */}
+              <div className="calendar-date">
+                <span style={{ color: dayColor, fontWeight: 600 }}>
+                  {day}
+                </span>
+              </div>
+              <div className="calendar-events">
+                {firstEvent && (
+                  <div className="calendar-event" title={firstEvent.title}>
+                    {firstEvent.title}
                   </div>
-                ))}
+                )}
+                {restCount > 0 && (
+                  <div className="calendar-event">
+                    他{restCount}件
+                  </div>
+                )}
               </div>
             </div>
           );
