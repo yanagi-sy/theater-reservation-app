@@ -1,16 +1,111 @@
-# React + Vite
+# 演劇公演 予約アプリ（React + Firebase）
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+観客は**アカウント不要**で公演検索〜予約〜キャンセルまで完結し、劇団側は**ログイン制**で公演管理と予約管理（CSV/PDF出力）を行える、演劇公演予約アプリのMVPです。
 
-Currently, two official plugins are available:
+「スマホでもPCでも違和感なく、情報が整理されている」ことをUIの主眼に置き、**1カラム前提・リスト中心・意思決定情報（会場/料金/予約状況）を最優先**に設計しています。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 1. プロジェクト概要（何のアプリか）
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **観客側**：カレンダー/一覧から公演を探し、詳細を確認して予約。予約キャンセルはURL（token）から実行。
+- **劇団側**：ログイン後に公演を作成/編集し、予約一覧をステージ単位で把握。現場運用を意識し、**印刷は廃止してCSV/PDFダウンロードに一本化**。
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 2. 主な機能（観客側 / 劇団側）
+
+### 観客側（アカウント不要）
+- **公演カレンダー**：日付セルをタップして`/stages?date=YYYY-MM-DD`へ遷移（Bottom Sheet廃止）
+- **公演一覧**：キーワード/料金/地域/日付（今日・明日・週末・カレンダー指定）で絞り込み
+- **公演詳細**：タイトル→団体→メタ情報→説明/キャスト/スタッフ/問い合わせ、の順に情報を整理
+- **予約キャンセル**：`cancelToken`で該当予約を特定し、`deleteDoc`で完全削除
+
+### 劇団側（ログイン制）
+- **保護ルート**：`ProtectedRoute`配下で管理画面を提供
+- **ダッシュボード/公演管理**：作成した公演の管理
+- **予約一覧（公演ごと）**：`onSnapshot`でリアルタイム同期し、ステージ単位で集計
+- **CSV / PDF ダウンロード**：受付運用を想定した出力（※印刷機能は持たない）
+- **共通メニュー（ハンバーガー）**：スマホ/PC共通の右上固定メニュー。ログアウト後は必ず`/`へ戻る
+
+---
+
+## 3. 技術スタック
+
+- **Frontend**：React 19 / React Router
+- **Build**：Vite
+- **Backend**：Firebase（Authentication / Firestore）
+- **Lint**：ESLint
+
+---
+
+## 4. Firestoreデータ設計（簡潔に）
+
+最小構成として、主に以下の3コレクションを使用します。
+
+- **`performances`**（公演）
+  - `title`, `troupeId`, `venue`, `price`, `overview`
+  - `stages[]`（例：`{ date, start, end, seatLimit }`）
+  - `cast[]`（例：`{ role, name }`）, `staff[]`（例：`{ role, name }`）
+- **`reservations`**（予約）
+  - `performanceId`, `stageId`（ステージを識別する数値/インデックス想定）, `people`
+  - `cancelToken`（キャンセルURL用）
+  - `createdAt`
+  - **（重要）`reservations`に存在する = 有効予約**。キャンセルは`deleteDoc`で完全削除
+- **`troupes`**（劇団）
+  - `uid`（AuthのUID）, `troupeName`, `iconUrl`, `description`, `contactInfo` など
+
+---
+
+## 5. 設計上の判断と理由（なぜそうしたか）
+
+- **観客をアカウント不要にした理由**
+  - 予約導線の摩擦を下げ、離脱ポイント（登録/ログイン）を最小化するため。
+- **キャンセルを`deleteDoc`で完全削除する理由**
+  - 受付/名簿/集計の運用を単純化するため。
+  - 「予約一覧＝有効予約」の意味が常に保たれ、現場の判断が速くなるため。
+- **“即判断情報”をメタ情報としてまとめる理由**
+  - 会場/料金/予約状況はAmazonの商品スペック同様に、最初に見るべき意思決定情報。
+  - 長文（説明）や一覧（キャスト/スタッフ/問い合わせ）と混ぜると視線誘導が崩れるため。
+- **スマホUIを1カラム・縦リスト中心にした理由**
+  - コンテンツ密度を上げつつ操作を迷わせない（1行=1情報）ため。
+  - 操作系（絞り込み等）は横並びを許容し、親指到達性を優先。
+- **印刷を持たずCSV/PDFに一本化した理由**
+  - “ブラウザ印刷”は環境差が大きく不安定要因になりやすい。
+  - データ出力はファイルとして確実に残せる方が運用に強い。
+
+---
+
+## 6. 開発中に直面した課題と学び
+
+- **UIとデータの不一致**
+  - Firestoreは「欠損/型揺れ」がUI崩れに直結するため、ID・型・件数で“事実ログ”を取り、差分を可視化して切り分ける重要性を学びました。
+- **レスポンシブは「縮める」より「優先順位を固定する」**
+  - 画面サイズで情報構造を変えると違和感が出るため、構造は固定し、フォント/余白だけを調整する方針にしました。
+- **予約運用の単純化**
+  - “キャンセル＝削除”により、管理画面・集計・出力の解釈を一貫させられる反面、監査ログが必要なら別設計が必要になる点も理解できました。
+
+---
+
+## 7. 環境構築手順
+
+```bash
+cd theater-reservation-app
+npm install
+npm run dev
+```
+
+### Firebase設定について
+- Firebaseは`src/firebase.js`で初期化しています。
+- 実運用では、`.env.local`に`VITE_FIREBASE_*`を設定して読み込む形に移行し、**キーのローテーション**と**Firestore Security Rules**の整備を前提にしてください。
+
+---
+
+## 8. 今後の改善点
+
+- **Security Rules / 権限制御の強化**（劇団が自分のデータのみ操作できることの担保）
+- **予約の監査ログ**（delete方式の補完：別コレクションへの書き込み等）
+- **パフォーマンス最適化**（一覧のクエリ/インデックス、段階的ロード、画像最適化）
+- **テスト整備**（予約導線/キャンセル/集計の回帰テスト）
+
+
